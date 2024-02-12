@@ -16,8 +16,9 @@ import evaluate
 # 1. Load and tokenize the dataset
 # ------------------------------
 # Load the dataset
-dataset_name = "wikitext-103-raw-v1"   #TODO: use https://huggingface.co/datasets/brando/debug1_af
-dataset = load_dataset(dataset_name)
+# dataset_name = "wikitext-103-raw-v1"   #TODO: use https://huggingface.co/datasets/brando/debug1_af
+# dataset = load_dataset(dataset_name)
+dataset = load_dataset("brando/debug1_af")
 
 # Load the tokenizer for GPT-2
 model_name = "gpt2-medium"  # TODO: custom AF model or

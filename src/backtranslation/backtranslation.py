@@ -50,3 +50,9 @@ def train_translation_model(model, informal_dataset, formal_dataset, batch_size,
         # Add any evaluation logic here to monitor validation loss/accuracy
 
     print("Training complete.")
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()
