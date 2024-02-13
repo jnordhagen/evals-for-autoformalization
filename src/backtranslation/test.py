@@ -1,17 +1,73 @@
-from transformers import 
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, TrainingArguments, Trainer
+from datasets import load_dataset
+import numpy as np
+import evaluate
+import os
+
+openai_api_key = os.environ["OPENAI_API_KEY"]
+
+teacher_model_name = "t5-base"  # Teacher model
+student_model_name = "openai-community/gpt2"      # Student model for fine-tuning
+
+teacher_tokenizer = AutoTokenizer.from_pretrained(teacher_model_name)
+teacher_model = AutoModelForSeq2SeqLM.from_pretrained(teacher_model_name)
+
+student_tokenizer = AutoTokenizer.from_pretrained(student_model_name)
+student_model = AutoModelForSeq2SeqLM.from_pretrained(student_model_name)
 
 
+# Generate synthetic backtranslations using the teacher model
+def generate_synthetic_backtranslations(teacher_model, teacher_tokenizer, few_shot_prompt, target_texts):
+    synthetic_pairs = []
+    for target_text in target_texts:
+        # Construct input for the teacher model using the few-shot prompt and the target text
+        input_text = few_shot_prompt + target_text
+        inputs = teacher_tokenizer.encode(input_text, return_tensors="pt")
+        
+        # Generate synthetic source sequence (backtranslation) using the teacher model
+        synthetic_source = teacher_model.generate(inputs, max_length=512)
+        
+        # Decode the generated tokens to get the synthetic source text
+        synthetic_source_text = teacher_tokenizer.decode(synthetic_source[0], skip_special_tokens=True)
+        
+        # Add the synthetic pair (source, target) to the list
+        synthetic_pairs.append((synthetic_source_text, target_text))
+    
+    return synthetic_pairs
 
+dataset_path = "data/corpus.jsonl"
+formal_dataset = load_dataset('json', data_files={'train': dataset_path})
 
+# Load or define the monolingual corpus in the target language
+corpus = formal_dataset['train']['premises'] 
+target_language_corpus = [thm['code'] for lst in corpus for thm in lst if thm['code'].startswith("theorem")]
 
+# Manually construct a few-shot prompt consisting of X|Y pairs
+with open('informalize_prompt.txt', 'r', encoding='utf-8') as f:
+    few_shot_prompt = f.read()
 
+# Generate synthetic backtranslations
+synthetic_data_pairs = generate_synthetic_backtranslations(teacher_model, teacher_tokenizer, few_shot_prompt, target_language_corpus)
 
+# Fine-tune the student model on the synthetic pairs
+# Note: This will involve preparing the data (tokenizing the synthetic pairs),
+# configuring the training parameters, and running the training loop.
+# The specifics of this step depend on your choice of training framework (e.g., Hugging Face Transformers' Trainer)
 
+# Preparing data for training
+training_examples = [{"input_ids": student_tokenizer.encode(pair[0], return_tensors="pt"),
+                      "labels": student_tokenizer.encode(pair[1], return_tensors="pt")} for pair in synthetic_data_pairs]
 
+# Example: Configuring training parameters and training loop will depend on your setup and is not shown here.
+training_args = TrainingArguments(output_dir="test_trainer")
 
+trainer = Trainer(
+    model=student_model,
+    args=training_args,
+    train_dataset=training_examples
+)
 
-
-# import torch
+trainer.train()
 
 
 # def train_to_af_for_maf(model, formal_data_set, informal_data_set, optimizer, loss_fn, num_epochs=1):
