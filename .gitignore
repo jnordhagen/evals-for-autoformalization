@@ -442,5 +442,5 @@ Research/Notebooks
 #Docker result files
 Results/
 
-# Dataset
+# LeanDojo Dataset
 src/backtranslation/data
