@@ -54,9 +54,21 @@ class TranslationModel(pl.LightningModule):
         return loss
 
     def generate_backtranslations(self, texts):
-        # Implement backtranslation logic here using the teacher model
-        # This function should return the backtranslated texts
-        pass
+        synthetic_pairs = []
+        for target_text in target_texts:
+            input_text = few_shot_prompt + target_text
+            inputs = teacher_tokenizer.encode(input_text, return_tensors="pt")
+            
+            # Generate synthetic source sequence (backtranslation) using the teacher model
+            synthetic_source = teacher_model.generate(inputs, max_length=512)
+            
+            # Decode the generated tokens to get the synthetic source text
+            synthetic_source_text = teacher_tokenizer.decode(synthetic_source[0], skip_special_tokens=True)
+            
+            # Add the synthetic pair (source, target) to the list
+            synthetic_pairs.append((synthetic_source_text, target_text))
+        
+        return synthetic_pairs
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate)

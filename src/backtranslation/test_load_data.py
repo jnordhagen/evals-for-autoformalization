@@ -1,20 +1,22 @@
-from datasets import load_dataset
+from datasets import Dataset, load_dataset
 import random
 
 dataset_path = "data/corpus.jsonl"
 
-# Load the dataset. Replace 'csv' with the appropriate format of your dataset if different.
-dataset = load_dataset('json', data_files={'train': dataset_path})
+def extract_theorem(example):
+    return {'code': [premise['code'] for premise in example['premises']]}
+    
+dataset = load_dataset('json', data_files={'train': dataset_path}, split='train')
+# unpacked_examples = [{'code': code} for example in dataset for code in example['code']]
+# unpacked_dataset = Dataset.from_dict({'code': [example['code'] for example in unpacked_examples]})
 
-# Print the names of the columns in the dataset
-print("Column names:", dataset['train'].column_names)
+print(f'{dataset.shape=}')
+print(f'{dataset.column_names}')
 
-# Print the first example in the dataset
-# print("First example:", dataset['train'][10])s
+dataset = [thm['code'] for lst in dataset['premises'] for thm in lst if thm['code'].startswith('theorem')]
+dataset = Dataset.from_dict({'formal': dataset})
 
-corpus = dataset['train']['premises'] 
-formal_data = [thm['code'] for lst in corpus for thm in lst if thm['code'].startswith("theorem")]
-print(len(formal_data))
-for _ in range(100):
-    thm = random.choice(formal_data)
-    print("true" if thm.startswith("theorem") else "false")
+print(f'{dataset.shape=}')
+print(f'{dataset.column_names}')
+
+print(dataset['formal'][7])
