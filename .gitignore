@@ -444,3 +444,6 @@ Results/
 
 # LeanDojo Dataset
 src/backtranslation/data
+
+src/backtranslation/runs
+src/backtranslation/saved_models

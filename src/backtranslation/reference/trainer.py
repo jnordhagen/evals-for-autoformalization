@@ -5,11 +5,14 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoTokenizer
 
 
 class UnsupervisedCustomTrainer:
+    """
+    Implements fine-tuning an LLM using on-the-fly backtranslation.
+    """
     
-    def __init__(self, model_name, fl_dataset, optimizer, device='cuda'):
+    def __init__(self, model_name, formal_dataset, optimizer, device='cuda'):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = GPT2LMHeadModel.from_pretrained(model_name).to(device)
-        self.fl_dataset = fl_dataset
+        self.formal_dataset = formal_dataset
         self.optimizer = optimizer
         self.device = device
 
@@ -75,7 +78,7 @@ class UnsupervisedCustomTrainer:
 
     def train(self, epochs, batch_size):
         self.model.train()
-        fl_loader = DataLoader(self.fl_dataset, batch_size=batch_size, shuffle=True)
+        fl_loader = DataLoader(self.formal_dataset, batch_size=batch_size, shuffle=True)
 
         for epoch in range(epochs):
             total_loss = 0

@@ -13,7 +13,12 @@ dataset = load_dataset('json', data_files={'train': dataset_path}, split='train'
 print(f'{dataset.shape=}')
 print(f'{dataset.column_names}')
 
+larger_dataset = [thm['code'] for lst in dataset['premises'] for thm in lst]
+print(len(larger_dataset))
+
 dataset = [thm['code'] for lst in dataset['premises'] for thm in lst if thm['code'].startswith('theorem')]
+print(len(dataset))
+
 dataset = Dataset.from_dict({'formal': dataset})
 
 print(f'{dataset.shape=}')
